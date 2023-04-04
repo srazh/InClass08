@@ -15,6 +15,8 @@ import com.example.inclass08_simplified.Models.User;
 import com.example.inclass08_simplified.R;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 
 public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHolder> {
