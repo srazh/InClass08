@@ -12,10 +12,13 @@ import com.example.inclass08_simplified.Fragments.FragmentNewChatSelectFriend;
 import com.example.inclass08_simplified.Fragments.FragmentRegister;
 import com.example.inclass08_simplified.Interfaces.IconnectToActivity;
 import com.example.inclass08_simplified.Models.User;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
@@ -24,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
 
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser;
+    private User currentLocalUser;
     private FirebaseFirestore db;
 
     @Override
@@ -46,11 +50,29 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
     private void populateScreen() {
         //      Check for Authenticated users ....
         if(currentUser != null){
-            //The user is authenticated, Populating The Main Fragment....
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.containerMain, FragmentMain.newInstance(),"mainFragment")
-                    .commit();
+//            The user is authenticated, fetching the details of the current user from Firebase...
+            db.collection("users")
+                    .document(currentUser.getEmail())
+                        .get()
+                        .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                if(task.isSuccessful()){
+                                    currentLocalUser = task.getResult()
+                                            .toObject(User.class);
+//                                    Log.d(Tags.TAG, "Current user: "+currentLocalUser.toString());
+                                    //Populating The Main Fragment....
+                                    getSupportFragmentManager().beginTransaction()
+                                            .replace(R.id.containerMain, FragmentMain.newInstance(),"mainFragment")
+                                            .commit();
 
+                                }else{
+                                    mAuth.signOut();
+                                    currentUser = null;
+                                    populateScreen();
+                                }
+                            }
+                        });
         }else{
 //            The user is not logged in, load the login Fragment....
             getSupportFragmentManager().beginTransaction()
@@ -70,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
 //            The user needs to create an account, load the register Fragment....
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.containerMain, FragmentRegister.newInstance(),"registerFragment")
+                .addToBackStack(null)
                 .commit();
 
     }
@@ -110,12 +133,14 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
     @Override
     public void newMessageButtonPressed(ArrayList<User> users) {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.containerMain, FragmentNewChatSelectFriend.newInstance(users, currentUser),"newChatFragment")
+                .replace(R.id.containerMain, new FragmentNewChatSelectFriend(users, currentLocalUser),"newChatFragment")
+                .addToBackStack(null)
                 .commit();
     }
 
     @Override
-    public void onFriendSelectedFromSelectFriend() {
+    public void onFriendSelectedFromSelectFriend(User selectedFriend) {
+        Log.d(Tags.TAG, "onFriendSelectedFromSelectFriend: "+selectedFriend.getFirstname());
 
     }
 

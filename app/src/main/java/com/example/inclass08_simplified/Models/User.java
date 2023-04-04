@@ -1,5 +1,7 @@
 package com.example.inclass08_simplified.Models;
 
+import androidx.annotation.Nullable;
+
 public class User {
     private String firstname;
     private String lastname;
@@ -56,5 +58,16 @@ public class User {
                 ", email='" + email + '\'' +
                 ", imageuri='" + imageuri + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        User other = (User) obj;
+        return getEmail().equals(other.getEmail());
+    }
+
+    @Override
+    public int hashCode() {
+        return getEmail().hashCode();
     }
 }

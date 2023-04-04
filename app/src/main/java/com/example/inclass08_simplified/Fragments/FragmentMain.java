@@ -114,4 +114,6 @@ public class FragmentMain extends Fragment {
     private void onLogoutPressed(View view) {
         mListener.logoutPressed();
     }
+
+
 }

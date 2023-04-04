@@ -12,5 +12,5 @@ public interface IconnectToActivity {
     void logoutPressed();
     void newMessageButtonPressed(ArrayList<User> users);
 
-    void onFriendSelectedFromSelectFriend();
+    void onFriendSelectedFromSelectFriend(User user);
 }
