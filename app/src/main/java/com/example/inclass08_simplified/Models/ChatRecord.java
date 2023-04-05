@@ -6,11 +6,11 @@ import java.util.Set;
 
 public class ChatRecord implements Serializable {
     private String documentReference;
-    private Set<String> user_emails;
+    private ArrayList<String> user_emails;
 
     public ChatRecord(){}
 
-    public ChatRecord(String documentReference, Set<String> user_emails) {
+    public ChatRecord(String documentReference, ArrayList<String> user_emails) {
         this.documentReference = documentReference;
         this.user_emails = user_emails;
     }
@@ -31,11 +31,11 @@ public class ChatRecord implements Serializable {
         this.documentReference = documentReference;
     }
 
-    public Set<String> getUser_emails() {
+    public ArrayList<String> getUser_emails() {
         return user_emails;
     }
 
-    public void setUser_emails(Set<String> user_emails) {
+    public void setUser_emails(ArrayList<String> user_emails) {
         this.user_emails = user_emails;
     }
 }

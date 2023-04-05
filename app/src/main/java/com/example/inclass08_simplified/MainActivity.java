@@ -3,6 +3,7 @@ package com.example.inclass08_simplified;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -27,8 +28,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements IconnectToActivity {
 
@@ -148,55 +150,68 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
     @Override
     public void onFriendSelectedFromSelectFriend(User selectedFriend) {
 //        Using set for future scalability for chat among more than two persons...
-        Set<String> emailsGroup = new HashSet<>();
+        ArrayList<String> chatEmails = new ArrayList<>();
         final ChatRecord[] theRecord = new ChatRecord[1];
-        emailsGroup.add(currentLocalUser.getEmail());
-        emailsGroup.add(selectedFriend.getEmail());
-//        Fetch the collection of chat records from users tree...
-        db.collection("users")
+        chatEmails.add(currentLocalUser.getEmail());
+        chatEmails.add(selectedFriend.getEmail());
+
+//        Generate a unique value for the list of users in this chat...
+        String uIDforChat = Utils.generateUniqueID(chatEmails);
+        Log.d(Tags.TAG, "UUID: "+uIDforChat);
+
+//        creating the array list of document references of the users involved in this chat....
+        ArrayList<DocumentReference> docsOfTheUsers = new ArrayList<>();
+        for(String email: chatEmails){
+            docsOfTheUsers.add(
+                    db.collection("users")
+                            .document(email)
+                            .collection("chats")
+                            .document(uIDforChat)
+            );
+        }
+
+//        Fetch the collection of chat records from users tree for current user...
+        DocumentReference chatDocRefInChatsTree = db.collection("users")
                 .document(currentLocalUser.getEmail())
                 .collection("chats")
+                .document(uIDforChat);
+
+        chatDocRefInChatsTree
                 .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        ArrayList<ChatRecord> chatRecords = new ArrayList<>();
-
-                        if(task.isSuccessful()){
-                            for (DocumentSnapshot docSnap: task.getResult()) {
-                                ChatRecord record = docSnap.toObject(ChatRecord.class);
-                                if (record.getUser_emails().equals(emailsGroup)){
-                                    theRecord[0] = record;
-                                }
-
-                            }
-                            Log.d(Tags.TAG, "TheRecord: "+theRecord[0]);
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if(documentSnapshot.getData() != null){
+        //                            There is chat record there, populate the chat fragment .....
+                            populateChatFragment(documentSnapshot.getReference());
                         }else{
-//                            Create a new record in chats tree......
-                            Log.d(Tags.TAG, "Not found in chats ");
-                            Chat chat = new Chat(emailsGroup);
+        //                            We need to create a new chat record ....
+        //                            First, create a chat record in chats tree...
+                            Chat newChat = new Chat(chatEmails);
                             db.collection("chats")
-                                    .add(chat)
+                                    .add(newChat)
                                     .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                                         @Override
                                         public void onSuccess(DocumentReference documentReference) {
-//                                            Create the chat record in users tree....
-                                            String docRef = documentReference.getId();
-                                            ChatRecord chatRecord = new ChatRecord(docRef, emailsGroup);
-                                            db.collection("users")
-                                                    .document(currentLocalUser.getEmail())
-                                                    .collection("chats")
-                                                    .add(chatRecord)
-                                                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                                        @Override
-                                                        public void onSuccess(DocumentReference documentReference) {
-                                                            populateChatFragment(documentReference);
-                                                        }
-                                                    });
+                                            ChatRecord newChatRecord = new ChatRecord(
+                                                    documentReference.getId(), chatEmails);
+        //                                            Now, we need to add the this document ID to users tree....
+                                            chatDocRefInChatsTree.set(newChatRecord);
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.e(Tags.TAG, "onFailure: "+ e.getMessage() );
                                         }
                                     });
                         }
-
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(Tags.TAG, "onFailure: "+ e.getMessage() );
                     }
                 });
 
