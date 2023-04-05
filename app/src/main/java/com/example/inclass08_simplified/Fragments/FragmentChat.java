@@ -5,6 +5,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
@@ -16,10 +17,12 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.inclass08_simplified.Models.Chat;
 import com.example.inclass08_simplified.Models.ChatRecord;
 import com.example.inclass08_simplified.Models.Message;
 import com.example.inclass08_simplified.Models.User;
 import com.example.inclass08_simplified.R;
+import com.example.inclass08_simplified.RecyclerAdapters.MessageAdapter;
 import com.example.inclass08_simplified.Tags;
 import com.example.inclass08_simplified.Utils;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -38,13 +41,12 @@ import java.util.ArrayList;
 public class FragmentChat extends Fragment {
 
     private FirebaseFirestore db;
-    private ChatRecord currentChat;
+    private ChatRecord currentChatRecord;
+    private Chat currentChat;
     private User currentLocalUser;
     private ArrayList<String> chatEmails;
-
-    private ArrayList<User> chatUsers;
     private ArrayList<Message> messages;
-    private TextView textViewChatUsers;
+    private TextView textViewChatName;
     private RecyclerView recyclerViewChat;
     private RecyclerView.LayoutManager recyclerViewChatLayoutManager;
     private RecyclerView.Adapter recyclerViewChatAdapter;
@@ -74,11 +76,16 @@ public class FragmentChat extends Fragment {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_chat, container, false);
 
-        textViewChatUsers = rootView.findViewById(R.id.textView_chatUserNames);
+        textViewChatName = rootView.findViewById(R.id.textView_chatUserNames);
         editText_Chat = rootView.findViewById(R.id.editText_TextMessage);
         imageButtonSelectPhoto = rootView.findViewById(R.id.imageButton_SelectPhoto);
         imageButtonSend = rootView.findViewById(R.id.imageButton_Send);
 
+        recyclerViewChat = rootView.findViewById(R.id.recyclerView_Chat);
+        recyclerViewChatLayoutManager = new LinearLayoutManager(getContext());
+        recyclerViewChatAdapter = new MessageAdapter(messages);
+        recyclerViewChat.setLayoutManager(recyclerViewChatLayoutManager);
+        recyclerViewChat.setAdapter(recyclerViewChatAdapter);
 
         imageButtonSelectPhoto.setOnClickListener(this::onButtonSelectPhotoClicked);
         imageButtonSend.setOnClickListener(this::onButtonSendClicked);
@@ -94,37 +101,61 @@ public class FragmentChat extends Fragment {
 
     private void fetchCurrentMessagesForThisChat(ArrayList<String> chatEmails) {
         String chatRecordID = Utils.generateUniqueID(chatEmails);
+
         DocumentReference chatRef = db.collection("users")
                 .document(currentLocalUser.getEmail())
                 .collection("chats")
                 .document(chatRecordID);
 //fetch the chat record ID......
         chatRef.get()
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        currentChat = documentSnapshot.toObject(ChatRecord.class);
+            .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                @Override
+                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                    currentChatRecord = documentSnapshot.toObject(ChatRecord.class);
 //                        Now, fetch all the messages from that chat room.....
-                        fetchCurrentMessages();
-                    }
-                });
+                    fetchCurrentChat();
+                }
+            });
     }
 
-    private void fetchCurrentMessages() {
-        CollectionReference messagesCollection = db.collection("chats")
-                .document(currentChat.getDocumentReference())
-                .collection("messages");
+    private void fetchCurrentChat() {
+        DocumentReference chatDocument = db.collection("chats")
+                .document(currentChatRecord.getDocumentReference());
 
+//        Get the chat document from chats.....
+        chatDocument.get()
+            .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if(task.isSuccessful()){
+                        currentChat = task.getResult().toObject(Chat.class);
+//                        Set the chat name.....
+                        textViewChatName.setText(currentChat.getChat_name());
+
+                        fetchMessages(chatDocument);
+
+                    }else{
+                        Toast.makeText(getContext(), "Error loading chats", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+    }
+
+    private void fetchMessages(DocumentReference chatDocument) {
+        CollectionReference messagesCollection = chatDocument.collection("messages");
         messagesCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
                 if(error!=null){
                     Log.e(Tags.TAG, "onEvent: "+ error.getMessage());
                 }else{
+                    messages.clear();
                     for(DocumentSnapshot documentSnapshot: value.getDocuments()){
                         messages.add(documentSnapshot.toObject(Message.class));
                     }
-//                    recyclerViewChatAdapter.notifyDataSetChanged();
+                    Log.d(Tags.TAG, "onEvent: "+messages);
+                    recyclerViewChatAdapter.notifyDataSetChanged();
                 }
             }
         });
@@ -134,6 +165,7 @@ public class FragmentChat extends Fragment {
         String text = editText_Chat.getText().toString().trim();
         if( text != ""){
             Message message = new Message(text);
+//            Upload it to Firebase.....
             uploadMessageToFirebase(message);
         }else{
             editText_Chat.setError("Can't be empty!");
@@ -142,7 +174,10 @@ public class FragmentChat extends Fragment {
     }
 
     private void uploadMessageToFirebase(Message message) {
-        
+        db.collection("chats")
+                .document(currentChatRecord.getDocumentReference())
+                .collection("messages")
+                .add(message);
     }
 
     private void onButtonSelectPhotoClicked(View view) {

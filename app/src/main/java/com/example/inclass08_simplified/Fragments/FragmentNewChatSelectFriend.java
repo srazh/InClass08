@@ -52,10 +52,6 @@ public class FragmentNewChatSelectFriend extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_new_chat_select_friend, container, false);
-
-        Log.d(Tags.TAG, "Current user: "+currentUser.toString());
-        Log.d(Tags.TAG, "Current users: "+users.toString());
-
 //        remove the currentUser from users array list...
         users.remove(currentUser);
         Log.d(Tags.TAG, "Current users: "+users.toString());
