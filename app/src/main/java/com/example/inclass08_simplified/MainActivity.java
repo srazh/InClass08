@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
     }
 
     @Override
-    public void newMessageButtonPressed(ArrayList<User> users) {
+    public void newMessageButtonPressedFromMainFragment(ArrayList<User> users) {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.containerMain, new FragmentNewChatSelectFriend(users, currentLocalUser),"selectFriendFragment")
                 .addToBackStack(null)
@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
     }
 
     @Override
-    public void onFriendSelectedFromSelectFriend(User selectedFriend) {
+    public void onFriendSelectedFromSelectFriendFragment(User selectedFriend) {
 //        Using set for future scalability for chat among more than two persons...
         ArrayList<String> chatEmails = new ArrayList<>();
         final ChatRecord[] theRecord = new ChatRecord[1];
@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
                         }else{
         //                  We need to create a new chat record ....
         //                  First, we need to fetch the users in this chat, and generate the Chat Name....
-                            fetchUsersInThisChat(chatEmails, uIDforChat);
+                            fetchUsersInTheSelectedChat(chatEmails, uIDforChat);
                         }
                     }
                 })
@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
         populateChatFragment(chatEmails);
     }
 
-    private void fetchUsersInThisChat(ArrayList<String> chatEmails, String uIDforChat) {
+    private void fetchUsersInTheSelectedChat(ArrayList<String> chatEmails, String uIDforChat) {
         ArrayList<User> chatUsers = new ArrayList<>();
         db.collection("users")
                 .get()
@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
                             //        setting the name of the chat...
                             String chatName = Utils.generateChatName(chatUsers);
                             //        Then, create a chat record in chats tree...
-                            createRecordInChats(chatName,chatEmails, uIDforChat);
+                            createRecordInFirebaseChatsCollection(chatName,chatEmails, uIDforChat);
                         }else{
                             Toast.makeText(getApplicationContext(), "Failed to retrieve users information", Toast.LENGTH_SHORT).show();
                         }
@@ -219,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
                 });
     }
 
-    private void createRecordInChats(String chatName, ArrayList<String> chatEmails, String uIDforChat) {
+    private void createRecordInFirebaseChatsCollection(String chatName, ArrayList<String> chatEmails, String uIDforChat) {
         Chat newChat = new Chat(chatEmails);
         newChat.setChat_name(chatName);
         db.collection("chats")
@@ -229,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
                 public void onSuccess(DocumentReference documentReference) {
                     ChatRecord newChatRecord = new ChatRecord(chatName, documentReference.getId(), chatEmails);
         //          Now, we need to add the this document ID to users tree for all users batch update.....
-                    updateChatRecordsInUsers(chatEmails, newChatRecord, uIDforChat);
+                    updateChatRecordsInFirebaseUsersCollection(chatEmails, newChatRecord, uIDforChat);
                 }
             })
             .addOnFailureListener(new OnFailureListener() {
@@ -240,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
             });
     }
 
-    private void updateChatRecordsInUsers(ArrayList<String> chatEmails, ChatRecord newChatRecord, String uIDforChat) {
+    private void updateChatRecordsInFirebaseUsersCollection(ArrayList<String> chatEmails, ChatRecord newChatRecord, String uIDforChat) {
         WriteBatch batch = db.batch();
         for(String email: chatEmails){
             batch.set(db.collection("users")
@@ -263,8 +263,6 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
             });
     }
 //
-
-
     private void populateChatFragment(ArrayList<String> chatEmails) {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.containerMain, new FragmentChat(currentLocalUser, chatEmails),"newChatFragment")

@@ -139,7 +139,7 @@ public class FragmentMain extends Fragment {
     }
 
     private void onNewMessageButtonPressed(View view) {
-        mListener.newMessageButtonPressed(users);
+        mListener.newMessageButtonPressedFromMainFragment(users);
     }
 
     private void onLogoutPressed(View view) {

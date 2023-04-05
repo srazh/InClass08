@@ -11,9 +11,9 @@ public interface IconnectToActivity {
     void populateRegisterFragment();
     void registerDone(FirebaseUser mUser, User user);
     void logoutPressed();
-    void newMessageButtonPressed(ArrayList<User> users);
+    void newMessageButtonPressedFromMainFragment(ArrayList<User> users);
 
-    void onFriendSelectedFromSelectFriend(User user);
+    void onFriendSelectedFromSelectFriendFragment(User user);
 
     void onChatSelectedFromRecentChats(ChatRecord record);
 }

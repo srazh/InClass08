@@ -15,8 +15,6 @@ import com.example.inclass08_simplified.Models.User;
 import com.example.inclass08_simplified.R;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
 
 public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHolder> {
@@ -75,7 +73,7 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHold
         holder.getButtonChatFriend().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.onFriendSelectedFromSelectFriend(curFriend);
+                mListener.onFriendSelectedFromSelectFriendFragment(curFriend);
             }
         });
     }
