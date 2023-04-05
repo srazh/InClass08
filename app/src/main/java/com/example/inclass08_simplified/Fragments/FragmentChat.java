@@ -1,8 +1,8 @@
 package com.example.inclass08_simplified.Fragments;
 
-import android.nfc.Tag;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,7 +22,9 @@ import com.example.inclass08_simplified.Models.User;
 import com.example.inclass08_simplified.R;
 import com.example.inclass08_simplified.Tags;
 import com.example.inclass08_simplified.Utils;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -39,6 +41,8 @@ public class FragmentChat extends Fragment {
     private ChatRecord currentChat;
     private User currentLocalUser;
     private ArrayList<String> chatEmails;
+
+    private ArrayList<User> chatUsers;
     private ArrayList<Message> messages;
     private TextView textViewChatUsers;
     private RecyclerView recyclerViewChat;
@@ -75,13 +79,18 @@ public class FragmentChat extends Fragment {
         imageButtonSelectPhoto = rootView.findViewById(R.id.imageButton_SelectPhoto);
         imageButtonSend = rootView.findViewById(R.id.imageButton_Send);
 
+
         imageButtonSelectPhoto.setOnClickListener(this::onButtonSelectPhotoClicked);
         imageButtonSend.setOnClickListener(this::onButtonSendClicked);
-//        Fetch the current messages......
+//        Fetch the current messages for this chat......
         fetchCurrentMessagesForThisChat(chatEmails);
+//        Fetch all the users in this chat.....
+//        fetchUsersInThisChat(chatEmails);
 
         return rootView;
     }
+
+
 
     private void fetchCurrentMessagesForThisChat(ArrayList<String> chatEmails) {
         String chatRecordID = Utils.generateUniqueID(chatEmails);
@@ -115,7 +124,7 @@ public class FragmentChat extends Fragment {
                     for(DocumentSnapshot documentSnapshot: value.getDocuments()){
                         messages.add(documentSnapshot.toObject(Message.class));
                     }
-                    recyclerViewChatAdapter.notifyDataSetChanged();
+//                    recyclerViewChatAdapter.notifyDataSetChanged();
                 }
             }
         });
