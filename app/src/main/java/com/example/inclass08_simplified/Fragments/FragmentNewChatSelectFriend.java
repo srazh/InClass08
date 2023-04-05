@@ -3,15 +3,18 @@ package com.example.inclass08_simplified.Fragments;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.inclass08_simplified.Models.User;
 import com.example.inclass08_simplified.R;
-import com.google.firebase.auth.FirebaseUser;
+import com.example.inclass08_simplified.RecyclerAdapters.FriendsAdapter;
+import com.example.inclass08_simplified.Tags;
 
 import java.util.ArrayList;
 
@@ -23,39 +26,25 @@ import java.util.ArrayList;
 public class FragmentNewChatSelectFriend extends Fragment {
 
     private static final String ARG_USERS = "users";
+    private static final String ARG_CURUSER = "mUser";
 
     // TODO: Rename and change types of parameters
     private ArrayList<User> users;
+    private User currentUser;
     private RecyclerView recyclerViewFriends;
     private RecyclerView.LayoutManager recyclerViewFriendsLayoutManager;
+    private FriendsAdapter friendsAdapter;
 
-    public FragmentNewChatSelectFriend() {
+    public FragmentNewChatSelectFriend(ArrayList<User> users, User currentUser) {
         // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param users       User ArrayList.
-     * @param currentUser
-     * @return A new instance of fragment FragmentNewChat.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static FragmentNewChatSelectFriend newInstance(ArrayList<User> users, FirebaseUser currentUser) {
-        FragmentNewChatSelectFriend fragment = new FragmentNewChatSelectFriend();
-        Bundle args = new Bundle();
-        args.putSerializable(ARG_USERS,users);
-        fragment.setArguments(args);
-        return fragment;
+        this.users = users;
+        this.currentUser =  currentUser;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            users = (ArrayList<User>) getArguments().getSerializable(ARG_USERS);
-        }
+
     }
 
     @Override
@@ -64,6 +53,17 @@ public class FragmentNewChatSelectFriend extends Fragment {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_new_chat, container, false);
 
+        Log.d(Tags.TAG, "Current user: "+currentUser.toString());
+        Log.d(Tags.TAG, "Current users: "+users.toString());
+
+//        remove the currentUser from users array list...
+        users.remove(currentUser);
+        Log.d(Tags.TAG, "Current users: "+users.toString());
+        recyclerViewFriends = rootView.findViewById(R.id.recyclerViewFriends);
+        recyclerViewFriendsLayoutManager = new LinearLayoutManager(getContext());
+        friendsAdapter = new FriendsAdapter(users,getContext());
+        recyclerViewFriends.setLayoutManager(recyclerViewFriendsLayoutManager);
+        recyclerViewFriends.setAdapter(friendsAdapter);
         return rootView;
     }
 }
