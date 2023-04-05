@@ -3,9 +3,9 @@ package com.example.inclass08_simplified;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.inclass08_simplified.Fragments.FragmentChat;
 import com.example.inclass08_simplified.Fragments.FragmentLogin;
@@ -25,12 +25,9 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements IconnectToActivity {
 
@@ -159,17 +156,6 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
         String uIDforChat = Utils.generateUniqueID(chatEmails);
         Log.d(Tags.TAG, "UUID: "+uIDforChat);
 
-//        creating the array list of document references of the users involved in this chat....
-        ArrayList<DocumentReference> docsOfTheUsers = new ArrayList<>();
-        for(String email: chatEmails){
-            docsOfTheUsers.add(
-                    db.collection("users")
-                            .document(email)
-                            .collection("chats")
-                            .document(uIDforChat)
-            );
-        }
-
 //        Fetch the collection of chat records from users tree for current user...
         DocumentReference chatDocRefInChatsTree = db.collection("users")
                 .document(currentLocalUser.getEmail())
@@ -183,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         if(documentSnapshot.getData() != null){
         //                            There is chat record there, populate the chat fragment .....
-                            populateChatFragment(documentSnapshot.getReference());
+                            populateChatFragment(chatEmails);
                         }else{
         //                            We need to create a new chat record ....
         //                            First, create a chat record in chats tree...
@@ -195,8 +181,28 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
                                         public void onSuccess(DocumentReference documentReference) {
                                             ChatRecord newChatRecord = new ChatRecord(
                                                     documentReference.getId(), chatEmails);
-        //                                            Now, we need to add the this document ID to users tree....
-                                            chatDocRefInChatsTree.set(newChatRecord);
+//                          Now, we need to add the this document ID to users tree for all users batch update.....
+                                            WriteBatch batch = db.batch();
+                                            for(String email: chatEmails){
+                                                batch.set(db.collection("users")
+                                                        .document(email)
+                                                        .collection("chats")
+                                                        .document(uIDforChat),
+                                                        newChatRecord);
+                                            }
+                                            batch.commit()
+                                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                        @Override
+                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                            if(task.isSuccessful()){
+                                                                populateChatFragment(chatEmails);
+                                                            }else{
+                                                                Toast.makeText(MainActivity.this, "An error occured! Try again!", Toast.LENGTH_SHORT).show();
+                                                                populateScreen();
+                                                            }
+                                                        }
+                                                    });
+
                                         }
                                     })
                                     .addOnFailureListener(new OnFailureListener() {
@@ -217,9 +223,9 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
 
     }
 
-    private void populateChatFragment(DocumentReference documentReference) {
+    private void populateChatFragment(ArrayList<String> chatEmails) {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.containerMain, new FragmentChat(currentLocalUser,documentReference),"newChatFragment")
+                .replace(R.id.containerMain, new FragmentChat(currentLocalUser, chatEmails),"newChatFragment")
                 .addToBackStack(null)
                 .commit();
     }
