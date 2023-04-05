@@ -1,5 +1,6 @@
 package com.example.inclass08_simplified.Interfaces;
 
+import com.example.inclass08_simplified.Models.ChatRecord;
 import com.example.inclass08_simplified.Models.User;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -13,4 +14,6 @@ public interface IconnectToActivity {
     void newMessageButtonPressed(ArrayList<User> users);
 
     void onFriendSelectedFromSelectFriend(User user);
+
+    void onChatSelectedFromRecentChats(ChatRecord record);
 }

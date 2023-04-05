@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
 //                                    Log.d(Tags.TAG, "Current user: "+currentLocalUser.toString());
                                     //Populating The Main Fragment....
                                     getSupportFragmentManager().beginTransaction()
-                                            .replace(R.id.containerMain, FragmentMain.newInstance(),"mainFragment")
+                                            .replace(R.id.containerMain, new FragmentMain(currentLocalUser),"mainFragment")
                                             .commit();
 
                                 }else{
@@ -186,6 +186,14 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
                 });
 
     }
+
+    @Override
+    public void onChatSelectedFromRecentChats(ChatRecord record) {
+        ArrayList<String> chatEmails = new ArrayList<>();
+        chatEmails = record.getUser_emails();
+        populateChatFragment(chatEmails);
+    }
+
     private void fetchUsersInThisChat(ArrayList<String> chatEmails, String uIDforChat) {
         ArrayList<User> chatUsers = new ArrayList<>();
         db.collection("users")

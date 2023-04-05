@@ -1,5 +1,8 @@
 package com.example.inclass08_simplified.Fragments;
 
+import static androidx.core.content.ContextCompat.getSystemService;
+
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -12,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -90,7 +94,27 @@ public class FragmentChat extends Fragment {
         recyclerViewChat.setAdapter(recyclerViewChatAdapter);
 
         imageButtonSelectPhoto.setOnClickListener(this::onButtonSelectPhotoClicked);
-        imageButtonSend.setOnClickListener(this::onButtonSendClicked);
+        imageButtonSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String text = editText_Chat.getText().toString().trim();
+                if( !text.equals("")){
+                    Message message = new Message(text, currentLocalUser);
+//            Upload it to Firebase.....
+                    uploadMessageToFirebase(message);
+                    editText_Chat.setText("");
+//            Hide Keyboard.......
+                    try {
+                        InputMethodManager inputMethodManager = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        inputMethodManager.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
+                    } catch (Exception e) {
+                        // TODO: handle exception
+                    }
+                }else{
+                    editText_Chat.setError("Can't be empty!");
+                }
+            }
+        });
 //        Fetch the current messages for this chat......
         fetchCurrentMessagesForThisChat(chatEmails);
 //        Fetch all the users in this chat.....
@@ -169,17 +193,6 @@ public class FragmentChat extends Fragment {
         });
     }
 
-    private void onButtonSendClicked(View view) {
-        String text = editText_Chat.getText().toString().trim();
-        if( text != ""){
-            Message message = new Message(text, currentLocalUser);
-//            Upload it to Firebase.....
-            uploadMessageToFirebase(message);
-        }else{
-            editText_Chat.setError("Can't be empty!");
-        }
-
-    }
 
     private void uploadMessageToFirebase(Message message) {
         db.collection("chats")
