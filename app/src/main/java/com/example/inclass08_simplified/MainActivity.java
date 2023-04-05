@@ -219,8 +219,7 @@ public class MainActivity extends AppCompatActivity implements IconnectToActivit
             .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                 @Override
                 public void onSuccess(DocumentReference documentReference) {
-                    ChatRecord newChatRecord = new ChatRecord(
-                            documentReference.getId(), chatEmails);
+                    ChatRecord newChatRecord = new ChatRecord(chatName, documentReference.getId(), chatEmails);
         //          Now, we need to add the this document ID to users tree for all users batch update.....
                     updateChatRecordsInUsers(chatEmails, newChatRecord, uIDforChat);
                 }

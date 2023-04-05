@@ -5,12 +5,14 @@ import java.util.ArrayList;
 import java.util.Set;
 
 public class ChatRecord implements Serializable {
+    private String chat_name;
     private String documentReference;
     private ArrayList<String> user_emails;
 
     public ChatRecord(){}
 
-    public ChatRecord(String documentReference, ArrayList<String> user_emails) {
+    public ChatRecord(String chat_name,String documentReference, ArrayList<String> user_emails) {
+        this.chat_name = chat_name;
         this.documentReference = documentReference;
         this.user_emails = user_emails;
     }
@@ -21,6 +23,14 @@ public class ChatRecord implements Serializable {
                 "documentReference='" + documentReference + '\'' +
                 ", user_emails=" + user_emails +
                 '}';
+    }
+
+    public String getChat_name() {
+        return chat_name;
+    }
+
+    public void setChat_name(String chat_name) {
+        this.chat_name = chat_name;
     }
 
     public String getDocumentReference() {
