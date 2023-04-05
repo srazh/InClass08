@@ -37,6 +37,8 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class FragmentChat extends Fragment {
 
@@ -83,7 +85,7 @@ public class FragmentChat extends Fragment {
 
         recyclerViewChat = rootView.findViewById(R.id.recyclerView_Chat);
         recyclerViewChatLayoutManager = new LinearLayoutManager(getContext());
-        recyclerViewChatAdapter = new MessageAdapter(messages);
+        recyclerViewChatAdapter = new MessageAdapter(messages, currentLocalUser);
         recyclerViewChat.setLayoutManager(recyclerViewChatLayoutManager);
         recyclerViewChat.setAdapter(recyclerViewChatAdapter);
 
@@ -154,6 +156,12 @@ public class FragmentChat extends Fragment {
                     for(DocumentSnapshot documentSnapshot: value.getDocuments()){
                         messages.add(documentSnapshot.toObject(Message.class));
                     }
+                    Collections.sort(messages, new Comparator<Message>() {
+                        @Override
+                        public int compare(Message t1, Message t2) {
+                            return (int) ((t1.getTime()-t2.getTime()));
+                        }
+                    });
                     Log.d(Tags.TAG, "onEvent: "+messages);
                     recyclerViewChatAdapter.notifyDataSetChanged();
                 }
@@ -164,7 +172,7 @@ public class FragmentChat extends Fragment {
     private void onButtonSendClicked(View view) {
         String text = editText_Chat.getText().toString().trim();
         if( text != ""){
-            Message message = new Message(text);
+            Message message = new Message(text, currentLocalUser);
 //            Upload it to Firebase.....
             uploadMessageToFirebase(message);
         }else{

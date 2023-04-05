@@ -12,11 +12,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
-        app:cardBackgroundColor="#23FFC107"
+        app:cardBackgroundColor="#228BC34A"
         app:cardCornerRadius="10dp"
         app:cardElevation="0dp"
         app:contentPadding="2dp"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -33,11 +33,11 @@
                 android:id="@+id/imageViewChatUser"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
                 android:background="#3F51B5"
                 app:layout_constraintCircleRadius="5dp"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@android:drawable/ic_menu_my_calendar" />
 
@@ -45,10 +45,10 @@
                 android:id="@+id/textView_ChatUserName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@+id/imageViewChatUser"
-                app:layout_constraintStart_toEndOf="@+id/imageViewChatUser"
+                app:layout_constraintEnd_toStartOf="@+id/imageViewChatUser"
                 app:layout_constraintTop_toTopOf="@+id/imageViewChatUser"
                 tools:text="TextView" />
 
@@ -56,10 +56,9 @@
                 android:id="@+id/textView_MessageText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:inputType="textMultiLine"
-                app:layout_constraintStart_toStartOf="@+id/imageViewChatUser"
+                app:layout_constraintEnd_toEndOf="@+id/imageViewChatUser"
                 app:layout_constraintTop_toBottomOf="@+id/imageViewChatUser"
                 tools:text="text" />
 
@@ -68,7 +67,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                app:layout_constraintStart_toStartOf="@+id/textView_MessageText"
+                app:layout_constraintEnd_toEndOf="@+id/imageViewChatUser"
                 app:layout_constraintTop_toBottomOf="@+id/textView_MessageText"
                 app:srcCompat="@drawable/ic_launcher_foreground" />
         </androidx.constraintlayout.widget.ConstraintLayout>
