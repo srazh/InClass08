@@ -1,11 +1,14 @@
 package com.example.inclass08_simplified.Fragments;
 
 import android.content.Context;
+import android.media.Image;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -14,7 +17,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.view.View;
+import android.widget.Toast;
+
 
 import com.example.inclass08_simplified.Interfaces.IconnectToActivity;
 import com.example.inclass08_simplified.Models.ChatRecord;
@@ -33,7 +40,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
-public class FragmentMain extends Fragment {
+public class FragmentMain extends Fragment{
 
     private FirebaseAuth mAuth;
     private FirebaseUser mUser;
@@ -50,6 +57,8 @@ public class FragmentMain extends Fragment {
     private RecyclerView recyclerViewRecentChats;
     private RecyclerView.LayoutManager recyclerViewRecentChatsLayoutManager;
     private RecyclerView.Adapter recyclerViewRecentChatsAdapter;
+
+    private ImageView profilePic;
     public FragmentMain() {
         // Required empty public constructor
     }
@@ -102,8 +111,35 @@ public class FragmentMain extends Fragment {
         recyclerViewRecentChats.setLayoutManager(recyclerViewRecentChatsLayoutManager);
         recyclerViewRecentChats.setAdapter(recyclerViewRecentChatsAdapter);
 
+
         return rootView;
     }
+
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // Access the ImageView inside the layout
+        ImageView profilePic = view.findViewById(R.id.profilePicture);
+
+        // Set an OnClickListener on the ImageView
+        profilePic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle the click event
+                Toast.makeText(getActivity(), "Image clicked", Toast.LENGTH_SHORT).show();
+                FragmentCameraController FragmentCameraController = new FragmentCameraController();
+                FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.replace(R.id.cameraContainer, FragmentCameraController);
+                fragmentTransaction.addToBackStack(null); // This allows the user to go back to the previous fragment using the back button
+                fragmentTransaction.commit();
+            }
+        });
+    }
+
+
 
     private void getUsersRealTime() {
         db.collection("users")
@@ -138,6 +174,9 @@ public class FragmentMain extends Fragment {
                 });
     }
 
+
+
+
     private void onNewMessageButtonPressed(View view) {
         mListener.newMessageButtonPressedFromMainFragment(users);
     }
@@ -145,6 +184,7 @@ public class FragmentMain extends Fragment {
     private void onLogoutPressed(View view) {
         mListener.logoutPressed();
     }
+
 
 
 }
